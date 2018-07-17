@@ -378,7 +378,7 @@ public class CorrelateFrames {
         final CvRaster[] frameImage = new CvRaster[fs.numFrames];
         for (int i = 0; i < fs.numFrames; i++) {
             if (filenames[i] != null)
-                frameImage[i] = CvRaster.manageCopy(Imgcodecs.imread(filenames[i]));
+                frameImage[i] = CvRaster.manageShallowCopy(Imgcodecs.imread(filenames[i]));
             else
                 frameImage[i] = null;
         }
@@ -397,7 +397,7 @@ public class CorrelateFrames {
             }
         }
 
-        return CvRaster.manageCopy(Imgcodecs.imread(filename));
+        return CvRaster.manageShallowCopy(Imgcodecs.imread(filename));
     }
 
     static private boolean commandLine(final String[] args) {

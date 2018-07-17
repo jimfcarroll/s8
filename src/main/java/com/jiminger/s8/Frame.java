@@ -1,22 +1,22 @@
 package com.jiminger.s8;
 /***********************************************************************
-    Legacy Film to DVD Project
-    Copyright (C) 2005 James F. Carroll
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-****************************************************************************/
+ * Legacy Film to DVD Project
+ * Copyright (C) 2005 James F. Carroll
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ ****************************************************************************/
 
 import java.awt.Point;
 import java.util.Properties;
@@ -29,153 +29,133 @@ import com.jiminger.image.geometry.PerpendicularLineCoordFit;
 import com.jiminger.image.houghspace.Transform;
 
 public class Frame {
-    public static final double worstEdgeStdDevAllowedAt3200Dpi = 1.5;
+   public static final double worstEdgeStdDevAllowedAt3200Dpi = 1.5;
 
-    private final Transform.Fit fit;
-    private final double centerFrameToCenterSprocketXmm;
-    private final double centerSprocketToFarEdgemm;
-    // private int filmLayout;
-    private final int filmType;
-    private final FilmEdge sprocketEdge;
-    private final FilmEdge farEdge;
-    private boolean outOfBounds;
-    private boolean noCut = true;
-    private boolean frameCut = false;
-    public int leftmostCol = 99999999;
-    public int rightmostCol = -1;
-    public int topmostRow = 99999999;
-    public int bottommostRow = -1;
-    public final double resolutiondpi;
-    public final double worstEdgeStdDevToConsider;
+   private final Transform.Fit fit;
+   private final double centerFrameToCenterSprocketXmm;
+   private final double centerSprocketToFarEdgemm;
+   // private int filmLayout;
+   private final int filmType;
+   private final FilmEdge sprocketEdge;
+   private final FilmEdge farEdge;
+   private boolean outOfBounds;
+   private boolean noCut = true;
+   private boolean frameCut = false;
+   public int leftmostCol = 99999999;
+   public int rightmostCol = -1;
+   public int topmostRow = 99999999;
+   public int bottommostRow = -1;
+   public final double resolutiondpi;
+   public final double worstEdgeStdDevToConsider;
 
-    public Frame(final Transform.Fit fit, final FilmEdge sprocketEdge, final FilmEdge farEdge/* , int filmLayout */, final int filmType,
-            final double resolutiondpi) {
-        this.fit = fit;
-        // this.filmLayout = filmLayout;
-        this.filmType = filmType;
+   public Frame(final Transform.Fit fit, final FilmEdge sprocketEdge, final FilmEdge farEdge/* , int filmLayout */, final int filmType,
+         final double resolutiondpi) {
+      this.fit = fit;
+      // this.filmLayout = filmLayout;
+      this.filmType = filmType;
 
-        final double[] spec = FilmSpec.filmModel(filmType);
+      final double[] spec = FilmSpec.filmModel(filmType);
 
-        centerFrameToCenterSprocketXmm = spec[FilmSpec.edgeToFrameCenterIndex] - // from the edge to the center of the frame
-                (spec[FilmSpec.edgeToEdgeIndex] + // from the same edge to the edge of the sprocket
-                        spec[FilmSpec.widthIndex] / 2.0); // + 1/2 of the sprocket width.
+      centerFrameToCenterSprocketXmm = spec[FilmSpec.edgeToFrameCenterIndex] - // from the edge to the center of the
+                                                                               // frame
+            (spec[FilmSpec.edgeToEdgeIndex] + // from the same edge to the edge of the sprocket
+                  spec[FilmSpec.widthIndex] / 2.0); // + 1/2 of the sprocket width.
 
-        centerSprocketToFarEdgemm = spec[FilmSpec.filmWidthIndex] - // film width
-                (spec[FilmSpec.edgeToEdgeIndex] + // from the sprocket film edge edge to the edge of the sprocket
-                        spec[FilmSpec.widthIndex] / 2.0); // + 1/2 of the sprocket width.
+      centerSprocketToFarEdgemm = spec[FilmSpec.filmWidthIndex] - // film width
+            (spec[FilmSpec.edgeToEdgeIndex] + // from the sprocket film edge edge to the edge of the sprocket
+                  spec[FilmSpec.widthIndex] / 2.0); // + 1/2 of the sprocket width.
 
-        this.sprocketEdge = sprocketEdge;
-        this.farEdge = farEdge;
-        this.resolutiondpi = resolutiondpi;
-        this.worstEdgeStdDevToConsider = (worstEdgeStdDevAllowedAt3200Dpi * resolutiondpi) / 3200.0;
-    }
+      this.sprocketEdge = sprocketEdge;
+      this.farEdge = farEdge;
+      this.resolutiondpi = resolutiondpi;
+      this.worstEdgeStdDevToConsider = (worstEdgeStdDevAllowedAt3200Dpi * resolutiondpi) / 3200.0;
+   }
 
-    public CvMat cutFrame(final CvRaster srcraster, final double resdpi,
-            final int frameWidthPix, final int frameHeightPix,
-            final boolean reverseImage, final int frameNum,
-            final double scaleMult, final boolean rescale,
-            final boolean correctrotation) {
+   public CvMat cutFrame(final CvRaster srcraster, final double resdpi,
+         final int frameWidthPix, final int frameHeightPix,
+         final boolean reverseImage, final int frameNum,
+         final double scaleMult, final boolean rescale,
+         final boolean correctrotation) {
 
-        noCut = false;
-        if (farEdge == null || farEdge.stdDev > worstEdgeStdDevToConsider) {
-            System.out.println("WARNING: far film edge for frame " + frameNum + " has a stdDev of " +
-                    (farEdge == null ? "null" : Double.toString(farEdge.stdDev)) +
-                    " and will not be used.");
+      noCut = false;
+      if(farEdge == null || farEdge.stdDev > worstEdgeStdDevToConsider) {
+         System.out.println("WARNING: far film edge for frame " + frameNum + " has a stdDev of " +
+               (farEdge == null ? "null" : Double.toString(farEdge.stdDev)) +
+               " and will not be used.");
 
-            if (sprocketEdge == null || sprocketEdge.stdDev > worstEdgeStdDevToConsider) {
-                System.out.println("WARNING: near film edge for frame " + frameNum + " has a stdDev of " +
-                        (sprocketEdge == null ? "null" : Double.toString(sprocketEdge.stdDev)) +
-                        " and will not be used.");
-                noCut = true;
-                return null;
-            } else
-                preMapSetupUsingSprocketEdge(frameWidthPix, frameHeightPix, scaleMult, reverseImage, rescale, correctrotation);
-        } else
-            preMapSetupUsingFarEdge(frameWidthPix, frameHeightPix, scaleMult, reverseImage, rescale, correctrotation);
+         if(sprocketEdge == null || sprocketEdge.stdDev > worstEdgeStdDevToConsider) {
+            System.out.println("WARNING: near film edge for frame " + frameNum + " has a stdDev of " +
+                  (sprocketEdge == null ? "null" : Double.toString(sprocketEdge.stdDev)) +
+                  " and will not be used.");
+            noCut = true;
+            return null;
+         } else
+            preMapSetupUsingSprocketEdge(frameWidthPix, frameHeightPix, scaleMult, reverseImage, rescale, correctrotation);
+      } else
+         preMapSetupUsingFarEdge(frameWidthPix, frameHeightPix, scaleMult, reverseImage, rescale, correctrotation);
 
-        outOfBounds = false;
+      outOfBounds = false;
 
-        try (Closer closer = new Closer()) {
-            final CvRaster dstraster = CvRaster.createManaged(frameHeightPix, frameWidthPix, srcraster.type(), closer);
+      try (Closer closer = new Closer()) {
+         final CvRaster dstraster = CvRaster.createManaged(frameHeightPix, frameWidthPix, srcraster.type(), closer);
+         closer.add(dstraster.imageOp()); // allow for use of the underlying pixel buffer
 
-            final int srcwidth = srcraster.cols();
-            final int srcheight = srcraster.rows();
+         final int srcwidth = srcraster.cols();
+         final int srcheight = srcraster.rows();
 
-            final int dstwidth = dstraster.cols();
-            final int dstheight = dstraster.rows();
+         final int dstwidth = dstraster.cols();
+         final int dstheight = dstraster.rows();
 
-            for (int dstRow = 0; dstRow < dstheight; dstRow++) {
-                for (int dstCol = 0; dstCol < dstwidth; dstCol++) {
-                    final Point srclocation = map(dstRow, dstCol, frameWidthPix, frameHeightPix, reverseImage);
+         for(int dstRow = 0; dstRow < dstheight; dstRow++) {
+            for(int dstCol = 0; dstCol < dstwidth; dstCol++) {
+               final Point srclocation = map(dstRow, dstCol, frameWidthPix, frameHeightPix, reverseImage);
 
-                    if (leftmostCol > srclocation.x)
-                        leftmostCol = srclocation.x;
-                    if (rightmostCol < srclocation.x)
-                        rightmostCol = srclocation.x;
-                    if (topmostRow > srclocation.y)
-                        topmostRow = srclocation.y;
-                    if (bottommostRow < srclocation.y)
-                        bottommostRow = srclocation.y;
+               if(leftmostCol > srclocation.x)
+                  leftmostCol = srclocation.x;
+               if(rightmostCol < srclocation.x)
+                  rightmostCol = srclocation.x;
+               if(topmostRow > srclocation.y)
+                  topmostRow = srclocation.y;
+               if(bottommostRow < srclocation.y)
+                  bottommostRow = srclocation.y;
 
-                    if (srclocation.y < 0 || srclocation.y >= srcheight ||
-                            srclocation.x < 0 || srclocation.x >= srcwidth) {
-                        dstraster.zero(dstRow, dstCol);
-                        outOfBounds = true;
-                    } else
-                        dstraster.set(dstRow, dstCol, srcraster.get(srclocation.y, srclocation.x));
-                }
+               if(srclocation.y < 0 || srclocation.y >= srcheight ||
+                     srclocation.x < 0 || srclocation.x >= srcwidth) {
+                  dstraster.zero(dstRow, dstCol);
+                  outOfBounds = true;
+               } else
+                  dstraster.set(dstRow, dstCol, srcraster.get(srclocation.y, srclocation.x));
             }
+         }
 
-            frameCut = true;
+         frameCut = true;
 
-            return dstraster.disown();
-        }
-    }
+         return dstraster.disown();
+      }
+   }
 
-    public void addProperties(final String section, final Properties prop) {
-        prop.setProperty(section + ".outofbounds", Boolean.toString(outOfBounds));
-        prop.setProperty(section + ".cutFrame", Boolean.toString(isCut()));
-    }
+   public void addProperties(final String section, final Properties prop) {
+      prop.setProperty(section + ".outofbounds", Boolean.toString(outOfBounds));
+      prop.setProperty(section + ".cutFrame", Boolean.toString(isCut()));
+   }
 
-    public boolean isOutOfBounds() {
-        return outOfBounds;
-    }
+   public boolean isOutOfBounds() {
+      return outOfBounds;
+   }
 
-    public boolean isCut() {
-        return !noCut;
-    }
+   public boolean isCut() {
+      return !noCut;
+   }
 
-    public boolean isFrameCut() {
-        return frameCut;
-    }
+   public boolean isFrameCut() {
+      return frameCut;
+   }
 
-    public double calculateFrameWidthPix() {
-        if (farEdge == null || farEdge.stdDev > worstEdgeStdDevToConsider) {
-            if (sprocketEdge == null || sprocketEdge.stdDev > worstEdgeStdDevToConsider)
-                return -1.0;
-            else {
-                // The frame center in the image will happen along the sprocket hole line
-                // right in between the two images. This will also need to change to the appropriate
-                // place along that line (not right between the two edges. .. actually, to
-                // make things even simpler for now I will make it exactly between the sprocket
-                // hole and the far edge.
-                //
-                // first determine the scale factor ...
-                //
-                double distPix = PerpendicularLineCoordFit.perpendicularDistance(fit, sprocketEdge.edge);
-                // we need to increase this amount by the percentage
-                // that the frame occupies when going from sprocket
-                // center to the far edge
-                final double scaleScale = FilmSpec.filmAttribute(filmType, FilmSpec.frameWidthIndex) /
-                        ((FilmSpec.filmAttribute(filmType, FilmSpec.edgeToEdgeIndex) +
-                                (FilmSpec.filmAttribute(filmType, FilmSpec.widthIndex) / 2.0)));
-                distPix *= scaleScale;
-
-                // distPix is now the calculated frame width in pixels for this frame.
-
-                return distPix;
-            }
-        } else {
+   public double calculateFrameWidthPix() {
+      if(farEdge == null || farEdge.stdDev > worstEdgeStdDevToConsider) {
+         if(sprocketEdge == null || sprocketEdge.stdDev > worstEdgeStdDevToConsider)
+            return -1.0;
+         else {
             // The frame center in the image will happen along the sprocket hole line
             // right in between the two images. This will also need to change to the appropriate
             // place along that line (not right between the two edges. .. actually, to
@@ -184,318 +164,340 @@ public class Frame {
             //
             // first determine the scale factor ...
             //
-            double distPix = PerpendicularLineCoordFit.perpendicularDistance(fit, farEdge.edge);
-
-            // we need to reduce this amount by the percentage
+            double distPix = PerpendicularLineCoordFit.perpendicularDistance(fit, sprocketEdge.edge);
+            // we need to increase this amount by the percentage
             // that the frame occupies when going from sprocket
             // center to the far edge
             final double scaleScale = FilmSpec.filmAttribute(filmType, FilmSpec.frameWidthIndex) /
-                    centerSprocketToFarEdgemm;
-
-            // scaleScale is now the ratio of the frame width to the
-            // distance from the center of the sprocket to the far edge. This
-            // will be less than 1.0
+                  ((FilmSpec.filmAttribute(filmType, FilmSpec.edgeToEdgeIndex) +
+                        (FilmSpec.filmAttribute(filmType, FilmSpec.widthIndex) / 2.0)));
             distPix *= scaleScale;
 
             // distPix is now the calculated frame width in pixels for this frame.
 
             return distPix;
-        }
-    }
+         }
+      } else {
+         // The frame center in the image will happen along the sprocket hole line
+         // right in between the two images. This will also need to change to the appropriate
+         // place along that line (not right between the two edges. .. actually, to
+         // make things even simpler for now I will make it exactly between the sprocket
+         // hole and the far edge.
+         //
+         // first determine the scale factor ...
+         //
+         double distPix = PerpendicularLineCoordFit.perpendicularDistance(fit, farEdge.edge);
 
-    private double scale;
-    private double imgcr;
-    private double imgcc;
-    private double unitRow;
-    private double unitCol;
-    private double vertUnitRow;
-    private double vertUnitCol;
+         // we need to reduce this amount by the percentage
+         // that the frame occupies when going from sprocket
+         // center to the far edge
+         final double scaleScale = FilmSpec.filmAttribute(filmType, FilmSpec.frameWidthIndex) /
+               centerSprocketToFarEdgemm;
 
-    private double fcc;
-    private double fcr;
+         // scaleScale is now the ratio of the frame width to the
+         // distance from the center of the sprocket to the far edge. This
+         // will be less than 1.0
+         distPix *= scaleScale;
 
-    private void preMapSetupUsingSprocketEdge(final int frameWidth, final int frameHeight, final double scaleMult,
-            final boolean reverseImage, final boolean rescale, final boolean correctrotation) {
-        // center of the frame in a coord system centered in the lower
-        // left corner of the frame itself
-        fcc = (frameWidth + 1) / 2.0;
-        fcr = (frameHeight + 1) / 2.0;
+         // distPix is now the calculated frame width in pixels for this frame.
 
-        // for now fit the width of the image between the edges. This will change to
-        // an estimate of the frame and some overlap (which will need to be specified
-        // also) but for now lets see if i can simply get a good image
-        //
-        // // The frame center in the image will happen along the sprocket hole line
-        // // right in between the two images. This will also need to change to the appropriate
-        // // place along that line (not right between the two edges. .. actually, to
-        // // make things even simpler for now I will make it exactly between the sprocket
-        // // hole and the far edge.
-        // //
-        // // first determine the scale factor ...
-        // //
-        // double distPix = PolarLineFit.perpendicularDistance(fit,sprocketEdge.c,sprocketEdge.r);
-        // // we need to increase this amount by the percentage
-        // // that the frame occupies when going from sprocket
-        // // center to the far edge
-        // double scaleScale = FilmSpec.filmAttribute(filmType,FilmSpec.frameWidthIndex) /
-        // ((FilmSpec.filmAttribute(filmType,FilmSpec.edgeToEdgeIndex) +
-        // (FilmSpec.filmAttribute(filmType,FilmSpec.widthIndex)/2.0)));
-        // distPix *= scaleScale;
+         return distPix;
+      }
+   }
 
-        final double distPix = calculateFrameWidthPix();
+   private double scale;
+   private double imgcr;
+   private double imgcc;
+   private double unitRow;
+   private double unitCol;
+   private double vertUnitRow;
+   private double vertUnitCol;
 
-        scale = distPix / (frameWidth); // original image pixels / frame pixels
-        scale *= scaleMult;
+   private double fcc;
+   private double fcr;
 
-        // now scr and scc give the location of the desired point scaled
-        // and relative to the center of the frame. So now we need to
-        // move cfc along the line between the sprocket hole center and
-        // the far edge starting from the point right in the middle.
-        final com.jiminger.image.geometry.Point nearPoint = Utils.closest(fit, sprocketEdge.edge);
+   private void preMapSetupUsingSprocketEdge(final int frameWidth, final int frameHeight, final double scaleMult,
+         final boolean reverseImage, final boolean rescale, final boolean correctrotation) {
+      // center of the frame in a coord system centered in the lower
+      // left corner of the frame itself
+      fcc = (frameWidth + 1) / 2.0;
+      fcr = (frameHeight + 1) / 2.0;
 
-        final double nearPointRow = nearPoint.getRow();
-        final double nearPointCol = nearPoint.getCol();
+      // for now fit the width of the image between the edges. This will change to
+      // an estimate of the frame and some overlap (which will need to be specified
+      // also) but for now lets see if i can simply get a good image
+      //
+      // // The frame center in the image will happen along the sprocket hole line
+      // // right in between the two images. This will also need to change to the appropriate
+      // // place along that line (not right between the two edges. .. actually, to
+      // // make things even simpler for now I will make it exactly between the sprocket
+      // // hole and the far edge.
+      // //
+      // // first determine the scale factor ...
+      // //
+      // double distPix = PolarLineFit.perpendicularDistance(fit,sprocketEdge.c,sprocketEdge.r);
+      // // we need to increase this amount by the percentage
+      // // that the frame occupies when going from sprocket
+      // // center to the far edge
+      // double scaleScale = FilmSpec.filmAttribute(filmType,FilmSpec.frameWidthIndex) /
+      // ((FilmSpec.filmAttribute(filmType,FilmSpec.edgeToEdgeIndex) +
+      // (FilmSpec.filmAttribute(filmType,FilmSpec.widthIndex)/2.0)));
+      // distPix *= scaleScale;
 
-        final double percentageFromSprocketHoleToNearEdge = -(centerFrameToCenterSprocketXmm /
-                ((FilmSpec.filmAttribute(filmType, FilmSpec.edgeToEdgeIndex) +
-                        (FilmSpec.filmAttribute(filmType, FilmSpec.widthIndex) / 2.0))));
+      final double distPix = calculateFrameWidthPix();
 
-        imgcr = (fit.cr * (1.0 - percentageFromSprocketHoleToNearEdge)) +
-                (nearPointRow * percentageFromSprocketHoleToNearEdge);
+      scale = distPix / (frameWidth); // original image pixels / frame pixels
+      scale *= scaleMult;
 
-        imgcc = (fit.cc * (1.0 - percentageFromSprocketHoleToNearEdge)) +
-                (nearPointCol * percentageFromSprocketHoleToNearEdge);
+      // now scr and scc give the location of the desired point scaled
+      // and relative to the center of the frame. So now we need to
+      // move cfc along the line between the sprocket hole center and
+      // the far edge starting from the point right in the middle.
+      final com.jiminger.image.geometry.Point nearPoint = Utils.closest(fit, sprocketEdge.edge);
 
-        // // a unint vector in the direction of the edge of the film within
-        // // the image is given by
-        // double nearEdgePolarMag = Math.sqrt( (sprocketEdge.r * sprocketEdge.r) + (sprocketEdge.c * sprocketEdge.c) );
-        // unitRow = sprocketEdge.r / nearEdgePolarMag;
-        // unitCol = sprocketEdge.c / nearEdgePolarMag;
-        //
-        // // If the row of the fit was negative (and the orientation is horizontal)
-        // // then the edge of the film was too close to the edge of the actual image
-        // // (and we are in danger of a singluarity ... but we'll fix that another time).
-        // // The unit vector should point from the sprocket hole TO the
-        // // far edge so the row should be reversed. In this case the origin occurrs in
-        // // between the two.
-        // if (!isVertical && unitRow < 0.0) unitRow = -unitRow;
-        //
-        // // If the col of the fit was negative (and the orientation is vertical)
-        // // then the edge of the film was too close to the edge of the actual image
-        // // (and we are in danger of a singluarity ... but we'll fix that another time).
-        // // The unit vector should point from the sprocket hole TO the
-        // // far edge so the col should reversed. In this case the origin occurrs in
-        // // between the two.
-        // if (isVertical && unitCol < 0.0) unitCol = -unitCol;
+      final double nearPointRow = nearPoint.getRow();
+      final double nearPointCol = nearPoint.getCol();
 
-        // Since we are using the 'nearPoint' above anyway, we will actually calculate
-        // the unit vector using these two points (the sprocket hole center and
-        // the closest point on the near edge).
-        //
-        // diffR,diffC is the r,c representation of the vector from the nearpoint
-        // to the sprocket hole center.
-        final double diffRow = fit.getRow() - nearPointRow;
-        final double diffCol = fit.getCol() - nearPointCol;
-        final double diffMag = Math.sqrt((diffRow * diffRow) + (diffCol * diffCol));
+      final double percentageFromSprocketHoleToNearEdge = -(centerFrameToCenterSprocketXmm /
+            ((FilmSpec.filmAttribute(filmType, FilmSpec.edgeToEdgeIndex) +
+                  (FilmSpec.filmAttribute(filmType, FilmSpec.widthIndex) / 2.0))));
 
-        // // this is flipped because the unit vector should go FROM the sprocket
-        // // hole TO the FAR edge.
-        unitRow = diffRow / diffMag;
-        unitCol = diffCol / diffMag;
+      imgcr = (fit.cr * (1.0 - percentageFromSprocketHoleToNearEdge)) +
+            (nearPointRow * percentageFromSprocketHoleToNearEdge);
 
-        // vertUnit goes DOWN the frame (positive row direction)
-        // parallel to the edge.
-        vertUnitRow = reverseImage ? -unitCol : unitCol;
-        vertUnitCol = reverseImage ? unitRow : -unitRow;
+      imgcc = (fit.cc * (1.0 - percentageFromSprocketHoleToNearEdge)) +
+            (nearPointCol * percentageFromSprocketHoleToNearEdge);
 
-        if (!correctrotation)
-            unrotate();
+      // // a unint vector in the direction of the edge of the film within
+      // // the image is given by
+      // double nearEdgePolarMag = Math.sqrt( (sprocketEdge.r * sprocketEdge.r) + (sprocketEdge.c * sprocketEdge.c) );
+      // unitRow = sprocketEdge.r / nearEdgePolarMag;
+      // unitCol = sprocketEdge.c / nearEdgePolarMag;
+      //
+      // // If the row of the fit was negative (and the orientation is horizontal)
+      // // then the edge of the film was too close to the edge of the actual image
+      // // (and we are in danger of a singluarity ... but we'll fix that another time).
+      // // The unit vector should point from the sprocket hole TO the
+      // // far edge so the row should be reversed. In this case the origin occurrs in
+      // // between the two.
+      // if (!isVertical && unitRow < 0.0) unitRow = -unitRow;
+      //
+      // // If the col of the fit was negative (and the orientation is vertical)
+      // // then the edge of the film was too close to the edge of the actual image
+      // // (and we are in danger of a singluarity ... but we'll fix that another time).
+      // // The unit vector should point from the sprocket hole TO the
+      // // far edge so the col should reversed. In this case the origin occurrs in
+      // // between the two.
+      // if (isVertical && unitCol < 0.0) unitCol = -unitCol;
 
-        if (!rescale)
-            scale = 1.0;
-    }
+      // Since we are using the 'nearPoint' above anyway, we will actually calculate
+      // the unit vector using these two points (the sprocket hole center and
+      // the closest point on the near edge).
+      //
+      // diffR,diffC is the r,c representation of the vector from the nearpoint
+      // to the sprocket hole center.
+      final double diffRow = fit.getRow() - nearPointRow;
+      final double diffCol = fit.getCol() - nearPointCol;
+      final double diffMag = Math.sqrt((diffRow * diffRow) + (diffCol * diffCol));
 
-    private void preMapSetupUsingFarEdge(final int frameWidth, final int frameHeight, final double scaleMult,
-            final boolean reverseImage, final boolean rescale, final boolean correctrotation) {
-        // center of the frame in a coord system centered in the lower
-        // left corner of the frame itself
-        fcc = (frameWidth + 1) / 2.0;
-        fcr = (frameHeight + 1) / 2.0;
+      // // this is flipped because the unit vector should go FROM the sprocket
+      // // hole TO the FAR edge.
+      unitRow = diffRow / diffMag;
+      unitCol = diffCol / diffMag;
 
-        // for now fit the width of the image between the edges. This will change to
-        // an estimate of the frame and some overlap (which will need to be specified
-        // also) but for now lets see if i can simply get a good image
-        //
-        // // The frame center in the image will happen along the sprocket hole line
-        // // right in between the two images. This will also need to change to the appropriate
-        // // place along that line (not right between the two edges. .. actually, to
-        // // make things even simpler for now I will make it exactly between the sprocket
-        // // hole and the far edge.
-        // //
-        // // first determine the scale factor ...
-        // //
-        // double distPix = PolarLineFit.perpendicularDistance(fit,farEdge.c, farEdge.r);
-        //
-        // // we need to reduce this amount by the percentage
-        // // that the frame occupies when going from sprocket
-        // // center to the far edge
-        // double scaleScale = FilmSpec.filmAttribute(filmType,FilmSpec.frameWidthIndex) /
-        // centerSprocketToFarEdgemm;
-        //
-        // // scaleScale is now the ratio of the frame width to the
-        // // distance from the center of the sprocket to the far edge. This
-        // // will be less than 1.0
-        // distPix *= scaleScale;
-        //
-        // // distPix is now the calculated frame width in pixels for this frame.
+      // vertUnit goes DOWN the frame (positive row direction)
+      // parallel to the edge.
+      vertUnitRow = reverseImage ? -unitCol : unitCol;
+      vertUnitCol = reverseImage ? unitRow : -unitRow;
 
-        final double distPix = calculateFrameWidthPix();
+      if(!correctrotation)
+         unrotate();
 
-        scale = distPix / (frameWidth); // original image pixels / frame pixels
-        scale *= scaleMult;
+      if(!rescale)
+         scale = 1.0;
+   }
 
-        // now scr and scc give the location of the desired point scaled
-        // and relative to the center of the frame. So now we need to
-        // move cfc along the line between the sprocket hole center and
-        // the far edge starting from the point right in the middle.
-        final com.jiminger.image.geometry.Point farPoint = Utils.closest(fit, farEdge.edge);
+   private void preMapSetupUsingFarEdge(final int frameWidth, final int frameHeight, final double scaleMult,
+         final boolean reverseImage, final boolean rescale, final boolean correctrotation) {
+      // center of the frame in a coord system centered in the lower
+      // left corner of the frame itself
+      fcc = (frameWidth + 1) / 2.0;
+      fcr = (frameHeight + 1) / 2.0;
 
-        final double farPointRow = farPoint.getRow();
-        final double farPointCol = farPoint.getCol();
+      // for now fit the width of the image between the edges. This will change to
+      // an estimate of the frame and some overlap (which will need to be specified
+      // also) but for now lets see if i can simply get a good image
+      //
+      // // The frame center in the image will happen along the sprocket hole line
+      // // right in between the two images. This will also need to change to the appropriate
+      // // place along that line (not right between the two edges. .. actually, to
+      // // make things even simpler for now I will make it exactly between the sprocket
+      // // hole and the far edge.
+      // //
+      // // first determine the scale factor ...
+      // //
+      // double distPix = PolarLineFit.perpendicularDistance(fit,farEdge.c, farEdge.r);
+      //
+      // // we need to reduce this amount by the percentage
+      // // that the frame occupies when going from sprocket
+      // // center to the far edge
+      // double scaleScale = FilmSpec.filmAttribute(filmType,FilmSpec.frameWidthIndex) /
+      // centerSprocketToFarEdgemm;
+      //
+      // // scaleScale is now the ratio of the frame width to the
+      // // distance from the center of the sprocket to the far edge. This
+      // // will be less than 1.0
+      // distPix *= scaleScale;
+      //
+      // // distPix is now the calculated frame width in pixels for this frame.
 
-        final double percentageFromSprocketHoleToFarEdge = (centerFrameToCenterSprocketXmm / centerSprocketToFarEdgemm);
+      final double distPix = calculateFrameWidthPix();
 
-        imgcr = (fit.cr * (1.0 - percentageFromSprocketHoleToFarEdge)) +
-                (farPointRow * percentageFromSprocketHoleToFarEdge);
+      scale = distPix / (frameWidth); // original image pixels / frame pixels
+      scale *= scaleMult;
 
-        imgcc = (fit.cc * (1.0 - percentageFromSprocketHoleToFarEdge)) +
-                (farPointCol * percentageFromSprocketHoleToFarEdge);
+      // now scr and scc give the location of the desired point scaled
+      // and relative to the center of the frame. So now we need to
+      // move cfc along the line between the sprocket hole center and
+      // the far edge starting from the point right in the middle.
+      final com.jiminger.image.geometry.Point farPoint = Utils.closest(fit, farEdge.edge);
 
-        // The following code is used to find a unit vector in the direction from
-        // the sprocket hole to the closest point on the far edge. It worked
-        // by understanding that the polar line representation of the far
-        // edge was exactly parallel to the line from the sprocket hole,
-        // through the axis that bisects the frame, to the closest point on
-        // the far edge. This code is commented out because of problems it has
-        // when the far edge line passes to the wrong side of the origin. Instead,
-        // since we are using the 'farPoint' above anyway, we will actually calculate
-        // the unit vector using these two points (the sprocket hole center and
-        // the closest point on the far edge).
-        //
-        // // a unint vector in the direction of the edge of the film within
-        // // the image is given by
-        // double farEdgePolarMag = Math.sqrt( (farEdge.r * farEdge.r) + (farEdge.c * farEdge.c) );
-        // unitRow = farEdge.r / farEdgePolarMag;
-        // unitCol = farEdge.c / farEdgePolarMag;
-        //
-        // // If the row of the fit was negative (and the orientation is horizontal)
-        // // then the edge of the film was too close to the edge of the actual image
-        // // (and we are in danger of a singluarity ... but we'll fix that another time).
-        // // The unit vector should point from the sprocket hole TO the
-        // // far edge so the row should be reversed. In this case the origin occurrs in
-        // // between the two.
-        // if (!isVertical && unitRow < 0.0) unitRow = -unitRow;
-        //
-        // // If the col of the fit was negative (and the orientation is vertical)
-        // // then the edge of the film was too close to the edge of the actual image
-        // // (and we are in danger of a singluarity ... but we'll fix that another time).
-        // // The unit vector should point from the sprocket hole TO the
-        // // far edge so the col should reversed. In this case the origin occurrs in
-        // // between the two.
-        // if (isVertical && unitCol < 0.0) unitCol = -unitCol;
+      final double farPointRow = farPoint.getRow();
+      final double farPointCol = farPoint.getCol();
 
-        // Since we are using the 'farPoint' above anyway, we will actually calculate
-        // the unit vector using these two points (the sprocket hole center and
-        // the closest point on the far edge).
-        //
-        // diffR,diffC is the r,c representation of the vector from the sprocket
-        // hole center to the far edge.
-        final double diffRow = farPointRow - fit.getRow();
-        final double diffCol = farPointCol - fit.getCol();
-        final double diffMag = Math.sqrt((diffRow * diffRow) + (diffCol * diffCol));
-        unitRow = diffRow / diffMag;
-        unitCol = diffCol / diffMag;
+      final double percentageFromSprocketHoleToFarEdge = (centerFrameToCenterSprocketXmm / centerSprocketToFarEdgemm);
 
-        // vertUnit goes DOWN the frame (positive row direction)
-        // parallel to the edge.
-        vertUnitRow = reverseImage ? -unitCol : unitCol;
-        vertUnitCol = reverseImage ? unitRow : -unitRow;
+      imgcr = (fit.cr * (1.0 - percentageFromSprocketHoleToFarEdge)) +
+            (farPointRow * percentageFromSprocketHoleToFarEdge);
 
-        if (!correctrotation)
-            unrotate();
+      imgcc = (fit.cc * (1.0 - percentageFromSprocketHoleToFarEdge)) +
+            (farPointCol * percentageFromSprocketHoleToFarEdge);
 
-        if (!rescale)
-            scale = 1.0;
-    }
+      // The following code is used to find a unit vector in the direction from
+      // the sprocket hole to the closest point on the far edge. It worked
+      // by understanding that the polar line representation of the far
+      // edge was exactly parallel to the line from the sprocket hole,
+      // through the axis that bisects the frame, to the closest point on
+      // the far edge. This code is commented out because of problems it has
+      // when the far edge line passes to the wrong side of the origin. Instead,
+      // since we are using the 'farPoint' above anyway, we will actually calculate
+      // the unit vector using these two points (the sprocket hole center and
+      // the closest point on the far edge).
+      //
+      // // a unint vector in the direction of the edge of the film within
+      // // the image is given by
+      // double farEdgePolarMag = Math.sqrt( (farEdge.r * farEdge.r) + (farEdge.c * farEdge.c) );
+      // unitRow = farEdge.r / farEdgePolarMag;
+      // unitCol = farEdge.c / farEdgePolarMag;
+      //
+      // // If the row of the fit was negative (and the orientation is horizontal)
+      // // then the edge of the film was too close to the edge of the actual image
+      // // (and we are in danger of a singluarity ... but we'll fix that another time).
+      // // The unit vector should point from the sprocket hole TO the
+      // // far edge so the row should be reversed. In this case the origin occurrs in
+      // // between the two.
+      // if (!isVertical && unitRow < 0.0) unitRow = -unitRow;
+      //
+      // // If the col of the fit was negative (and the orientation is vertical)
+      // // then the edge of the film was too close to the edge of the actual image
+      // // (and we are in danger of a singluarity ... but we'll fix that another time).
+      // // The unit vector should point from the sprocket hole TO the
+      // // far edge so the col should reversed. In this case the origin occurrs in
+      // // between the two.
+      // if (isVertical && unitCol < 0.0) unitCol = -unitCol;
 
-    private void unrotate() {
-        if (Math.abs(unitRow) > Math.abs(unitCol)) {
-            unitCol = 0.0;
-            unitRow = unitRow > 0.0 ? 1.0 : -1.0;
-        } else {
-            unitRow = 0.0;
-            unitCol = unitCol > 0.0 ? 1.0 : -1.0;
-        }
+      // Since we are using the 'farPoint' above anyway, we will actually calculate
+      // the unit vector using these two points (the sprocket hole center and
+      // the closest point on the far edge).
+      //
+      // diffR,diffC is the r,c representation of the vector from the sprocket
+      // hole center to the far edge.
+      final double diffRow = farPointRow - fit.getRow();
+      final double diffCol = farPointCol - fit.getCol();
+      final double diffMag = Math.sqrt((diffRow * diffRow) + (diffCol * diffCol));
+      unitRow = diffRow / diffMag;
+      unitCol = diffCol / diffMag;
 
-        if (Math.abs(vertUnitRow) > Math.abs(vertUnitCol)) {
-            vertUnitCol = 0.0;
-            vertUnitRow = vertUnitRow > 0.0 ? 1.0 : -1.0;
-        } else {
-            vertUnitRow = 0.0;
-            vertUnitCol = vertUnitCol > 0.0 ? 1.0 : -1.0;
-        }
+      // vertUnit goes DOWN the frame (positive row direction)
+      // parallel to the edge.
+      vertUnitRow = reverseImage ? -unitCol : unitCol;
+      vertUnitCol = reverseImage ? unitRow : -unitRow;
 
-        scale = 1.0;
-    }
+      if(!correctrotation)
+         unrotate();
 
-    private Point map(final int r, final int c, final int frameWidth, final int frameHeight,
-            final boolean reverseImage) {
-        // r and c in frame image coords - with the frame image origin
-        // at the center of the image.
-        final double cfc = (c) - fcc;
-        final double rfc = (r) - fcr;
+      if(!rescale)
+         scale = 1.0;
+   }
 
-        // scale the row and col passed in.
-        final double scr = rfc * scale;
-        final double scc = cfc * scale;
+   private void unrotate() {
+      if(Math.abs(unitRow) > Math.abs(unitCol)) {
+         unitCol = 0.0;
+         unitRow = unitRow > 0.0 ? 1.0 : -1.0;
+      } else {
+         unitRow = 0.0;
+         unitCol = unitCol > 0.0 ? 1.0 : -1.0;
+      }
 
-        // // mirror if reverseImaged
-        // if (reverseImage) { scc = -scc; }
+      if(Math.abs(vertUnitRow) > Math.abs(vertUnitCol)) {
+         vertUnitCol = 0.0;
+         vertUnitRow = vertUnitRow > 0.0 ? 1.0 : -1.0;
+      } else {
+         vertUnitRow = 0.0;
+         vertUnitCol = vertUnitCol > 0.0 ? 1.0 : -1.0;
+      }
 
-        // now move scr pixels up and scc pixels right (either can be negative)
-        // starting from the center and along the unit vector or it's
-        // 90 degree rotation.
-        // unitRow, unitCol is in the direction along the axis of the frame.
-        //
-        // we also need the unit vector in the 'downward' direction of the
-        // frame. Rotating the unit vector 'downward' depends on whether or
-        // not we're reversed.
-        //
-        // downward if we are reversed then [row,col] is -unitCol, unitRow.
-        // downward if we are not reversed then [row,col] is unitCol, -unitRow
-        //
-        // Then if we move SCr along the frame vertical unit vector and SCc along the
-        // frame axis unit vector, then we should be in the right place in
-        // the image.
-        //
-        // IM = sCr UnitVertical + sCc UnitAxis
-        //
-        // UnitAlongAxis is U
-        // UnitDownward is V
-        //
-        // imr = sCr * vr + sCc * ur
-        // imc = sCr * vc + sCc * uc
-        //
-        // then, of course, we need to translate the system to
-        // the frame center.
+      scale = 1.0;
+   }
 
-        // translate to the correct location in the image
+   private Point map(final int r, final int c, final int frameWidth, final int frameHeight,
+         final boolean reverseImage) {
+      // r and c in frame image coords - with the frame image origin
+      // at the center of the image.
+      final double cfc = (c) - fcc;
+      final double rfc = (r) - fcr;
 
-        final double imgrow = ((scr * vertUnitRow) + (scc * unitRow)) + imgcr;
-        final double imgcol = ((scr * vertUnitCol) + (scc * unitCol)) + imgcc;
+      // scale the row and col passed in.
+      final double scr = rfc * scale;
+      final double scc = cfc * scale;
 
-        return new Point((int) (imgcol + 0.5), (int) (imgrow + 0.5));
-    }
+      // // mirror if reverseImaged
+      // if (reverseImage) { scc = -scc; }
+
+      // now move scr pixels up and scc pixels right (either can be negative)
+      // starting from the center and along the unit vector or it's
+      // 90 degree rotation.
+      // unitRow, unitCol is in the direction along the axis of the frame.
+      //
+      // we also need the unit vector in the 'downward' direction of the
+      // frame. Rotating the unit vector 'downward' depends on whether or
+      // not we're reversed.
+      //
+      // downward if we are reversed then [row,col] is -unitCol, unitRow.
+      // downward if we are not reversed then [row,col] is unitCol, -unitRow
+      //
+      // Then if we move SCr along the frame vertical unit vector and SCc along the
+      // frame axis unit vector, then we should be in the right place in
+      // the image.
+      //
+      // IM = sCr UnitVertical + sCc UnitAxis
+      //
+      // UnitAlongAxis is U
+      // UnitDownward is V
+      //
+      // imr = sCr * vr + sCc * ur
+      // imc = sCr * vc + sCc * uc
+      //
+      // then, of course, we need to translate the system to
+      // the frame center.
+
+      // translate to the correct location in the image
+
+      final double imgrow = ((scr * vertUnitRow) + (scc * unitRow)) + imgcr;
+      final double imgcol = ((scr * vertUnitCol) + (scc * unitCol)) + imgcc;
+
+      return new Point((int)(imgcol + 0.5), (int)(imgrow + 0.5));
+   }
 }
 
 // public void drawFrameOutline(TiledImage ti, double resdpi, int frameWidthPix, int frameHeightPix,
