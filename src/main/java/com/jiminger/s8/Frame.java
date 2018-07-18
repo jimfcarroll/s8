@@ -97,7 +97,7 @@ public class Frame {
       outOfBounds = false;
 
       try (Closer closer = new Closer()) {
-         final CvRaster dstraster = CvRaster.createManaged(frameHeightPix, frameWidthPix, srcraster.type(), closer);
+         final CvRaster dstraster = CvRaster.create(frameHeightPix, frameWidthPix, srcraster.type(), closer);
          closer.add(dstraster.imageOp()); // allow for use of the underlying pixel buffer
 
          final int srcwidth = srcraster.cols();

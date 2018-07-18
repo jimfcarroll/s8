@@ -350,7 +350,7 @@ public class ExtractFrames {
 
             timer.start();
             System.out.print("writing transform information to debug image ... ");
-            final CvRaster sprocketInfoTiledImage = CvRaster.createManaged(origImageHeight, origImageWidth, CvType.CV_8UC1, closer);
+            final CvRaster sprocketInfoTiledImage = CvRaster.create(origImageHeight, origImageWidth, CvType.CV_8UC1, closer);
 
             // // This commented out code if for me to look at the resulting edges.
             // PolarLineFit.drawPolarLine(sprocketEdge.r,sprocketEdge.c,sprocketInfoTiledImage,Color.cyan);
@@ -648,7 +648,7 @@ public class ExtractFrames {
 
         final int srcrows = src.rows();
         final int srccols = src.cols();
-        try (final CvRaster tmp = CvRaster.createManaged(srcrows, srccols, CvType.CV_32SC3);) {
+        try (final CvRaster tmp = CvRaster.create(srcrows, srccols, CvType.CV_32SC3);) {
 
             final PixelToInts p2i = CvRaster.pixelToIntsConverter(src);
 
