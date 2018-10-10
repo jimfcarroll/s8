@@ -18,14 +18,14 @@ package com.jiminger.s8;
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ****************************************************************************/
 
-import static com.jiminger.image.Operations.BOVERLAY;
-import static com.jiminger.image.Operations.COVERLAY;
-import static com.jiminger.image.Operations.EDGE;
-import static com.jiminger.image.Operations.GOVERLAY;
-import static com.jiminger.image.Operations.ROVERLAY;
-import static com.jiminger.image.Operations.YOVERLAY;
-import static com.jiminger.image.Operations.getOverlayCM;
-import static com.jiminger.image.Utils.print;
+import static ai.kognition.pilecv4j.image.Operations.BOVERLAY;
+import static ai.kognition.pilecv4j.image.Operations.COVERLAY;
+import static ai.kognition.pilecv4j.image.Operations.EDGE;
+import static ai.kognition.pilecv4j.image.Operations.GOVERLAY;
+import static ai.kognition.pilecv4j.image.Operations.ROVERLAY;
+import static ai.kognition.pilecv4j.image.Operations.YOVERLAY;
+import static ai.kognition.pilecv4j.image.Operations.getOverlayCM;
+import static ai.kognition.pilecv4j.image.Utils.print;
 import static net.dempsy.util.Functional.uncheck;
 
 import java.awt.Color;
@@ -44,23 +44,23 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import com.jiminger.image.CvMat;
-import com.jiminger.image.CvRaster;
-import com.jiminger.image.CvRaster.IntsToPixel;
-import com.jiminger.image.CvRaster.PixelAggregate;
-import com.jiminger.image.CvRaster.PixelToInts;
-import com.jiminger.image.ImageFile;
-import com.jiminger.image.Operations;
-import com.jiminger.image.Operations.GradientImages;
-import com.jiminger.image.Utils;
-import com.jiminger.image.geometry.PerpendicularLineCoordFit;
-import com.jiminger.image.geometry.Point;
-import com.jiminger.image.geometry.WeightedPoint;
-import com.jiminger.image.houghspace.Transform;
-import com.jiminger.nr.Minimizer;
-import com.jiminger.nr.MinimizerException;
-import com.jiminger.util.CommandLineParser;
-import com.jiminger.util.PropertiesUtils;
+import ai.kognition.pilecv4j.image.CvMat;
+import ai.kognition.pilecv4j.image.CvRaster;
+import ai.kognition.pilecv4j.image.ImageFile;
+import ai.kognition.pilecv4j.image.Operations;
+import ai.kognition.pilecv4j.image.Utils;
+import ai.kognition.pilecv4j.image.CvRaster.IntsToPixel;
+import ai.kognition.pilecv4j.image.CvRaster.PixelAggregate;
+import ai.kognition.pilecv4j.image.CvRaster.PixelToInts;
+import ai.kognition.pilecv4j.image.Operations.GradientImages;
+import ai.kognition.pilecv4j.image.geometry.PerpendicularLineCoordFit;
+import ai.kognition.pilecv4j.image.geometry.Point;
+import ai.kognition.pilecv4j.image.geometry.WeightedPoint;
+import ai.kognition.pilecv4j.image.houghspace.Transform;
+import ai.kognition.pilecv4j.nr.Minimizer;
+import ai.kognition.pilecv4j.nr.MinimizerException;
+import ai.kognition.pilecv4j.util.CommandLineParser;
+import ai.kognition.pilecv4j.util.PropertiesUtils;
 
 /*******************************************************************
  * Because I had to look this up 8000 times I decided to document it.
@@ -150,7 +150,7 @@ public class ExtractFrames {
 
     /** The main method. */
     public static void main(final String[] args) throws IOException, InterruptedException, MinimizerException {
-        final com.jiminger.util.Timer totalTime = new com.jiminger.util.Timer();
+        final ai.kognition.pilecv4j.util.Timer totalTime = new ai.kognition.pilecv4j.util.Timer();
         totalTime.start();
 
         // we will write out a set of bookkeeping properties
@@ -194,7 +194,7 @@ public class ExtractFrames {
             final int origImageHeight = origImage.rows();
             final int origImageWidth = origImage.cols();
 
-            final com.jiminger.util.Timer timer = new com.jiminger.util.Timer();
+            final ai.kognition.pilecv4j.util.Timer timer = new ai.kognition.pilecv4j.util.Timer();
 
             // ------------------------------------------------------------
             // This does a conversion to grayscale

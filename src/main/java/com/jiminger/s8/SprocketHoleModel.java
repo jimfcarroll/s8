@@ -18,7 +18,7 @@
 ****************************************************************************/
 package com.jiminger.s8;
 
-import com.jiminger.image.houghspace.Model;
+import ai.kognition.pilecv4j.image.houghspace.Model;
 
 public class SprocketHoleModel implements Model {
     // the variables need to be set to the height

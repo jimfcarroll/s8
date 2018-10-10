@@ -18,7 +18,7 @@ package com.jiminger.s8;
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ****************************************************************************/
 
-import com.jiminger.image.CvRaster;
+import ai.kognition.pilecv4j.image.CvRaster;
 
 public class Correlate {
     public static double[] correlation(final CvRaster Xraster, final CvRaster Yraster)

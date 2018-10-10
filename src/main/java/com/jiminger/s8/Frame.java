@@ -21,12 +21,12 @@ package com.jiminger.s8;
 import java.awt.Point;
 import java.util.Properties;
 
-import com.jiminger.image.CvMat;
-import com.jiminger.image.CvRaster;
-import com.jiminger.image.CvRaster.Closer;
-import com.jiminger.image.Utils;
-import com.jiminger.image.geometry.PerpendicularLineCoordFit;
-import com.jiminger.image.houghspace.Transform;
+import ai.kognition.pilecv4j.image.CvMat;
+import ai.kognition.pilecv4j.image.CvRaster;
+import ai.kognition.pilecv4j.image.Utils;
+import ai.kognition.pilecv4j.image.CvRaster.Closer;
+import ai.kognition.pilecv4j.image.geometry.PerpendicularLineCoordFit;
+import ai.kognition.pilecv4j.image.houghspace.Transform;
 
 public class Frame {
    public static final double worstEdgeStdDevAllowedAt3200Dpi = 1.5;
@@ -253,7 +253,7 @@ public class Frame {
       // and relative to the center of the frame. So now we need to
       // move cfc along the line between the sprocket hole center and
       // the far edge starting from the point right in the middle.
-      final com.jiminger.image.geometry.Point nearPoint = Utils.closest(fit, sprocketEdge.edge);
+      final ai.kognition.pilecv4j.image.geometry.Point nearPoint = Utils.closest(fit, sprocketEdge.edge);
 
       final double nearPointRow = nearPoint.getRow();
       final double nearPointCol = nearPoint.getCol();
@@ -360,7 +360,7 @@ public class Frame {
       // and relative to the center of the frame. So now we need to
       // move cfc along the line between the sprocket hole center and
       // the far edge starting from the point right in the middle.
-      final com.jiminger.image.geometry.Point farPoint = Utils.closest(fit, farEdge.edge);
+      final ai.kognition.pilecv4j.image.geometry.Point farPoint = Utils.closest(fit, farEdge.edge);
 
       final double farPointRow = farPoint.getRow();
       final double farPointCol = farPoint.getCol();

@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.jiminger</groupId>
+  <groupId>ai.kognition.pilecv4j</groupId>
   <artifactId>s8</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -33,7 +33,7 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>com.jiminger</groupId>
+        <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>opencv-lib-jar</artifactId>
         <classifier>withlib</classifier>
         <version>${opencv.version}</version>
@@ -41,12 +41,12 @@
 
       <!-- Internal to the product -->
       <dependency>
-        <groupId>com.jiminger</groupId>
+        <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>lib-nr</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.jiminger</groupId>
+        <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>lib-image</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -83,15 +83,15 @@
   
   <dependencies>
     <dependency>
-      <groupId>com.jiminger</groupId>
+      <groupId>ai.kognition.pilecv4j</groupId>
       <artifactId>lib-nr</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.jiminger</groupId>
+      <groupId>ai.kognition.pilecv4j</groupId>
       <artifactId>lib-image</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.jiminger</groupId>
+      <groupId>ai.kognition.pilecv4j</groupId>
       <artifactId>opencv-lib-jar</artifactId>
       <classifier>withlib</classifier>
     </dependency>

@@ -36,12 +36,12 @@ import java.util.StringTokenizer;
 
 import org.opencv.imgcodecs.Imgcodecs;
 
-import com.jiminger.image.CvRaster;
-import com.jiminger.image.mjpeg.MJPEGWriter;
-import com.jiminger.nr.MinimizerException;
-import com.jiminger.util.CommandLineParser;
-import com.jiminger.util.FilenameUtils;
-import com.jiminger.util.PropertiesUtils;
+import ai.kognition.pilecv4j.image.CvRaster;
+import ai.kognition.pilecv4j.image.mjpeg.MJPEGWriter;
+import ai.kognition.pilecv4j.nr.MinimizerException;
+import ai.kognition.pilecv4j.util.CommandLineParser;
+import ai.kognition.pilecv4j.util.FilenameUtils;
+import ai.kognition.pilecv4j.util.PropertiesUtils;
 
 public class CorrelateFrames {
     public static final long megaBytes = 1024L * 1024L;
