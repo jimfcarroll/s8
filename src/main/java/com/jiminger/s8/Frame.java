@@ -22,9 +22,8 @@ import java.awt.Point;
 import java.util.Properties;
 
 import ai.kognition.pilecv4j.image.CvMat;
-import ai.kognition.pilecv4j.image.CvRaster;
-import ai.kognition.pilecv4j.image.Utils;
 import ai.kognition.pilecv4j.image.CvRaster.Closer;
+import ai.kognition.pilecv4j.image.Utils;
 import ai.kognition.pilecv4j.image.geometry.PerpendicularLineCoordFit;
 import ai.kognition.pilecv4j.image.houghspace.Transform;
 
@@ -71,7 +70,7 @@ public class Frame {
       this.worstEdgeStdDevToConsider = (worstEdgeStdDevAllowedAt3200Dpi * resolutiondpi) / 3200.0;
    }
 
-   public CvMat cutFrame(final CvRaster srcraster, final double resdpi,
+   public CvMat cutFrame(final CvMat srcMat, final double resdpi,
          final int frameWidthPix, final int frameHeightPix,
          final boolean reverseImage, final int frameNum,
          final double scaleMult, final boolean rescale,
@@ -97,40 +96,44 @@ public class Frame {
       outOfBounds = false;
 
       try (Closer closer = new Closer()) {
-         final CvRaster dstraster = CvRaster.create(frameHeightPix, frameWidthPix, srcraster.type(), closer);
-         closer.add(dstraster.imageOp()); // allow for use of the underlying pixel buffer
+         final CvMat dstMat = closer.add(new CvMat(frameHeightPix, frameWidthPix, srcMat.type()));
 
-         final int srcwidth = srcraster.cols();
-         final int srcheight = srcraster.rows();
+         final int srcwidth = srcMat.cols();
+         final int srcheight = srcMat.rows();
 
-         final int dstwidth = dstraster.cols();
-         final int dstheight = dstraster.rows();
+         final int dstwidth = dstMat.cols();
+         final int dstheight = dstMat.rows();
 
-         for(int dstRow = 0; dstRow < dstheight; dstRow++) {
-            for(int dstCol = 0; dstCol < dstwidth; dstCol++) {
-               final Point srclocation = map(dstRow, dstCol, frameWidthPix, frameHeightPix, reverseImage);
+         dstMat.rasterAp(dstraster -> {
+            srcMat.rasterAp(srcraster -> {
 
-               if(leftmostCol > srclocation.x)
-                  leftmostCol = srclocation.x;
-               if(rightmostCol < srclocation.x)
-                  rightmostCol = srclocation.x;
-               if(topmostRow > srclocation.y)
-                  topmostRow = srclocation.y;
-               if(bottommostRow < srclocation.y)
-                  bottommostRow = srclocation.y;
+               for(int dstRow = 0; dstRow < dstheight; dstRow++) {
+                  for(int dstCol = 0; dstCol < dstwidth; dstCol++) {
+                     final Point srclocation = map(dstRow, dstCol, frameWidthPix, frameHeightPix, reverseImage);
 
-               if(srclocation.y < 0 || srclocation.y >= srcheight ||
-                     srclocation.x < 0 || srclocation.x >= srcwidth) {
-                  dstraster.zero(dstRow, dstCol);
-                  outOfBounds = true;
-               } else
-                  dstraster.set(dstRow, dstCol, srcraster.get(srclocation.y, srclocation.x));
-            }
-         }
+                     if(leftmostCol > srclocation.x)
+                        leftmostCol = srclocation.x;
+                     if(rightmostCol < srclocation.x)
+                        rightmostCol = srclocation.x;
+                     if(topmostRow > srclocation.y)
+                        topmostRow = srclocation.y;
+                     if(bottommostRow < srclocation.y)
+                        bottommostRow = srclocation.y;
+
+                     if(srclocation.y < 0 || srclocation.y >= srcheight ||
+                           srclocation.x < 0 || srclocation.x >= srcwidth) {
+                        dstraster.zero(dstRow, dstCol);
+                        outOfBounds = true;
+                     } else
+                        dstraster.set(dstRow, dstCol, srcraster.get(srclocation.y, srclocation.x));
+                  }
+               }
+            });
+         });
 
          frameCut = true;
 
-         return dstraster.disown();
+         return dstMat.returnMe();
       }
    }
 
