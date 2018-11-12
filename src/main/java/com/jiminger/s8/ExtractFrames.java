@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -45,9 +46,7 @@ import org.opencv.imgproc.Imgproc;
 
 import ai.kognition.pilecv4j.image.CvMat;
 import ai.kognition.pilecv4j.image.CvRaster;
-import ai.kognition.pilecv4j.image.CvRaster.IntsToPixel;
 import ai.kognition.pilecv4j.image.CvRaster.PixelAggregate;
-import ai.kognition.pilecv4j.image.CvRaster.PixelToInts;
 import ai.kognition.pilecv4j.image.ImageFile;
 import ai.kognition.pilecv4j.image.Operations;
 import ai.kognition.pilecv4j.image.Operations.GradientImages;
@@ -649,7 +648,7 @@ public class ExtractFrames {
       final int srccols = src.cols();
       try (final CvMat tmpMat = new CvMat(srcrows, srccols, CvType.CV_32SC3);) {
 
-         final PixelToInts p2i = CvRaster.pixelToIntsConverter(src);
+         final Function<Object, int[]> p2i = CvRaster.pixelToIntsConverter(src.type());
 
          tmpMat.rasterAp(tmp -> {
             int maxChannel = 0;
@@ -674,7 +673,7 @@ public class ExtractFrames {
 
             // now rescale so maxChannel is 0xffff.
             final double rescale = maxPixValD / maxChannel;
-            final IntsToPixel toPix = CvRaster.intsToPixelConverter(src);
+            final Function<int[], Object> toPix = CvRaster.intsToPixelConverter(src.type());
             final int tmprows = tmp.rows();
             final int tmpcols = tmp.cols();
             for(int r = 0; r < tmprows; r++) {
@@ -693,7 +692,7 @@ public class ExtractFrames {
    }
 
    public static PixelAggregate<Object, Hist> histogram(final CvRaster raster) {
-      final CvRaster.GetChannelValueAsInt channelValFetcher = CvRaster.channelValueFetcher(raster);
+      final CvRaster.GetChannelValueAsInt channelValFetcher = CvRaster.channelValueFetcher(raster.type());
       final int numChannels = raster.channels();
       return (h, pixel, row, col) -> {
          for(int i = 0; i < numChannels; i++) {
@@ -716,7 +715,7 @@ public class ExtractFrames {
 
       // line goes from lowerBound, 0.0 -> upperBound, maxPixVal
       final double range = upperBound - lowerBound;
-      final int numValues = CvRaster.numChannelElementValues(raster);
+      final int numValues = CvRaster.numChannelElementValues(raster.type());
       final int maxPixVal = numValues - 1;
       final double maxPixValD = maxPixVal;
       final int[] mapping = new int[numValues];

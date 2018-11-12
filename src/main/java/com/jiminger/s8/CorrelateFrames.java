@@ -717,7 +717,7 @@ public class CorrelateFrames {
 
          for(int i = startframe; i <= endframe; i++) {
             if(isCut(i) && !isDropped(i) && !isOutOfBounds(i))
-               ret.add(new Integer(i));
+               ret.add(Integer.valueOf(i));
          }
 
          return ret;
