@@ -25,7 +25,6 @@ import static ai.kognition.pilecv4j.image.Operations.GOVERLAY;
 import static ai.kognition.pilecv4j.image.Operations.ROVERLAY;
 import static ai.kognition.pilecv4j.image.Operations.YOVERLAY;
 import static ai.kognition.pilecv4j.image.Operations.getOverlayCM;
-import static ai.kognition.pilecv4j.image.Utils.print;
 
 import java.awt.Color;
 import java.io.File;
@@ -340,7 +339,7 @@ public class ExtractFrames {
          final Transform.HoughSpace houghSpace = transform.transform(edgeRaster, gradientDirRaster, houghThreshold,
                rowstart, rowend, colstart, colend);
          if(writeDebugImages)
-            ImageFile.writeImageFile(houghSpace.getTransformRaster(), outDir + File.separator + "tmpht.bmp");
+            ImageFile.writeImageFile(houghSpace.createTransformCvMat(), outDir + File.separator + "tmpht.bmp");
          System.out.println("done (" + timer.stop() + ")");
          // ------------------------------------------------------------
 
@@ -715,7 +714,7 @@ public class ExtractFrames {
 
       // line goes from lowerBound, 0.0 -> upperBound, maxPixVal
       final double range = upperBound - lowerBound;
-      final int numValues = CvRaster.numChannelElementValues(raster.type());
+      final int numValues = 1 << Utils.bitsPerChannel(raster.type());
       final int maxPixVal = numValues - 1;
       final double maxPixValD = maxPixVal;
       final int[] mapping = new int[numValues];
@@ -962,6 +961,11 @@ public class ExtractFrames {
       System.out.println("  -wm set the reference image and frame into the final frame images as a watermark.");
       System.out.println("  -ot set the output file type (and extention).");
       System.out.println("  -di writes out tmp*.bmp debug images.");
+   }
+
+   private static void print(final String prefix, final Mat im) {
+      System.out.println(prefix + " { depth=(" + CvType.ELEM_SIZE(im.type()) + "(" + CvType.typeToString(im.type()) + "), " + im.depth() + "), channels="
+            + im.channels() + " HxW=" + im.height() + "x" + im.width() + " }");
    }
 
 }
