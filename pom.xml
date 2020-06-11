@@ -17,6 +17,7 @@
     <cmake.generator>${generator}</cmake.generator>
     
     <dempsy-commons.version>2.2.0</dempsy-commons.version>
+    <pilecv4j.version>0.8-SNAPSHOT</pilecv4j.version>
   </properties>
   
   <!-- Make sure all versions are listed in the dependencyManagement section -->
@@ -43,12 +44,12 @@
       <dependency>
         <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>lib-nr</artifactId>
-        <version>${project.version}</version>
+        <version>${pilecv4j.version}</version>
       </dependency>
       <dependency>
         <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>lib-image</artifactId>
-        <version>${project.version}</version>
+        <version>${pilecv4j.version}</version>
       </dependency>
 
       <!-- the version number for all dependencies in this section
