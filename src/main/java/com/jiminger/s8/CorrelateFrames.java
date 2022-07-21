@@ -34,14 +34,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import com.jiminger.s8.internal.FilenameUtils;
+import com.jiminger.s8.internal.PropertiesUtils;
+
 import org.opencv.imgcodecs.Imgcodecs;
+
+import net.dempsy.util.CommandLineParser;
 
 import ai.kognition.pilecv4j.image.CvMat;
 import ai.kognition.pilecv4j.image.mjpeg.MJPEGWriter;
 import ai.kognition.pilecv4j.nr.MinimizerException;
-import ai.kognition.pilecv4j.util.CommandLineParser;
-import ai.kognition.pilecv4j.util.FilenameUtils;
-import ai.kognition.pilecv4j.util.PropertiesUtils;
 
 public class CorrelateFrames {
     public static final long megaBytes = 1024L * 1024L;

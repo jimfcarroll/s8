@@ -38,10 +38,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.jiminger.s8.internal.PropertiesUtils;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+
+import net.dempsy.util.CommandLineParser;
 
 import ai.kognition.pilecv4j.image.CvMat;
 import ai.kognition.pilecv4j.image.CvRaster;
@@ -56,8 +60,6 @@ import ai.kognition.pilecv4j.image.geometry.WeightedPoint;
 import ai.kognition.pilecv4j.image.houghspace.Transform;
 import ai.kognition.pilecv4j.nr.Minimizer;
 import ai.kognition.pilecv4j.nr.MinimizerException;
-import ai.kognition.pilecv4j.util.CommandLineParser;
-import ai.kognition.pilecv4j.util.PropertiesUtils;
 
 /*******************************************************************
  * Because I had to look this up 8000 times I decided to document it.

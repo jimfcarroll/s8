@@ -17,7 +17,6 @@
     <!-- generator and platform.options are set in the profile -->
     <cmake.generator>${generator}</cmake.generator>
     
-    <dempsy-commons.version>2.2.0</dempsy-commons.version>
     <pilecv4j.version>0.16-SNAPSHOT</pilecv4j.version>
   </properties>
 
@@ -96,13 +95,6 @@
     <dependencies>
       <!-- dempsy-commons bom pom import -->
       <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-commons-bom</artifactId>
-        <version>${dempsy-commons.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
         <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>opencv-${platform}</artifactId>
         <classifier>withlib</classifier>
@@ -138,7 +130,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.6</version>
+        <version>2.9.0</version>
       </dependency>
       
       <!-- Testing -->
@@ -173,10 +165,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.dempsy</groupId>
-      <artifactId>dempsy-utils</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
