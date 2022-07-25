@@ -17,7 +17,7 @@
     <!-- generator and platform.options are set in the profile -->
     <cmake.generator>${generator}</cmake.generator>
     
-    <pilecv4j.version>0.16-SNAPSHOT</pilecv4j.version>
+    <pilecv4j.version>0.17</pilecv4j.version>
   </properties>
 
   <profiles>
@@ -93,13 +93,6 @@
        (with the exception of the parent tag) -->
   <dependencyManagement>
     <dependencies>
-      <!-- dempsy-commons bom pom import -->
-      <dependency>
-        <groupId>ai.kognition.pilecv4j</groupId>
-        <artifactId>opencv-${platform}</artifactId>
-        <classifier>withlib</classifier>
-        <version>${opencv.version}</version>
-      </dependency>
 
       <!-- Internal to the product -->
       <dependency>
@@ -110,6 +103,18 @@
       <dependency>
         <groupId>ai.kognition.pilecv4j</groupId>
         <artifactId>lib-image</artifactId>
+        <version>${pilecv4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ai.kognition.pilecv4j</groupId>
+        <artifactId>native-image-${platform}</artifactId>
+        <classifier>bin</classifier>
+        <version>${pilecv4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ai.kognition.pilecv4j</groupId>
+        <artifactId>native-nr-${platform}</artifactId>
+        <classifier>bin</classifier>
         <version>${pilecv4j.version}</version>
       </dependency>
 
@@ -154,8 +159,13 @@
     </dependency>
     <dependency>
       <groupId>ai.kognition.pilecv4j</groupId>
-      <artifactId>opencv-${platform}</artifactId>
-      <classifier>withlib</classifier>
+      <artifactId>native-nr-${platform}</artifactId>
+      <classifier>bin</classifier>
+    </dependency>
+    <dependency>
+      <groupId>ai.kognition.pilecv4j</groupId>
+      <artifactId>native-image-${platform}</artifactId>
+      <classifier>bin</classifier>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
