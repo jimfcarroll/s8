@@ -1,4 +1,5 @@
 package com.jiminger.s8;
+
 /***********************************************************************
  * Legacy Film to DVD Project
  * Copyright (C) 2005 James F. Carroll
@@ -47,6 +48,7 @@ import org.opencv.imgproc.Imgproc;
 
 import net.dempsy.util.CommandLineParser;
 
+import ai.kognition.pilecv4j.image.Closer;
 import ai.kognition.pilecv4j.image.CvMat;
 import ai.kognition.pilecv4j.image.CvRaster;
 import ai.kognition.pilecv4j.image.CvRaster.PixelAggregate;
@@ -184,7 +186,7 @@ public class ExtractFrames {
 
         final String propertyFileName = outDir + File.separator + "frames.properties";
 
-        try(final CvRaster.Closer closer = new CvRaster.Closer()) {
+        try(final Closer closer = new Closer()) {
             final CvMat origImage = closer.add(ImageFile.readMatFromFile(sourceFileName));
             if(writeDebugImages)
                 ImageFile.writeImageFile(origImage, outDir + File.separator + "orig.tif");
@@ -233,7 +235,7 @@ public class ExtractFrames {
             // --------------------------------------
             System.out.println("Performing Sobel deriv calculation");
             System.out.print("Making gradient image ... ");
-            final GradientImages gis = Operations.gradient(grayImage, kernelSize, closer);
+            final GradientImages gis = closer.add(Operations.gradient(grayImage, kernelSize));
             final CvMat dx = gis.dx;
             final CvMat dy = gis.dy;
             final CvMat gradientDirRaster = gis.gradientDir;
@@ -263,7 +265,7 @@ public class ExtractFrames {
             System.out.println("High threshold for Canny hysteresis is " + thigh);
             System.out.println("Low threshold for Canny hysteresis is " + tlow);
 
-            final CvMat edgeRaster = Operations.canny(gis, tlow, thigh, closer);
+            final CvMat edgeRaster = closer.add(Operations.canny(gis, tlow, thigh));
 
             System.out.println("done.");
             if(writeDebugImages)
